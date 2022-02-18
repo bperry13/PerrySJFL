@@ -31,8 +31,9 @@ struct Data {
 
 ////////////////////////////////////////////////////////////////////////////////
 //GLOBAL VARIABLES
-int ticks, process_count, current_process, t;
-float tau;
+int ticks = 0, process_count = 0, current_process = 0, t = 0;
+int tot_turn_time = 0, turn_time = 0, tot_wait_time = 0, wait_time = 0, error_est = 0;
+float tau = 0;
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -42,51 +43,35 @@ float tau;
 ////////////////////////////////////////////////////////////////////////////////
 //FUNCTIONS
 
-void addProcess(struct Data** front, int i) {
+//Shortest Job First algorithm
+void sjf(FILE *fp, int ticks, int process_count) {
+    int i = 0, y = 0, t = 0;
+    printf("==Shortest-Job-First==\n");
+    while (current_process < (process_count - 1)) {
 
-    //allocate mem for new node
-    struct Data* new_node = malloc(sizeof(struct Data));
-    struct Data* last = *front;
+        fscanf(fp, "%d", &current_process);
+        fscanf(fp, "%d", &t);
+        fscanf(fp, "%f", &tau);
+        printf("Simulating %dth tick of processes @ time %d:\n", i, t);
 
-    //add data to new node
-    new_node->i = i;
+        while (t < ticks) {
 
-    //make next of new node NULL
-    new_node->next = NULL;
-
-    //if Linked List is empty set new node to front
-    if (*front == NULL) {
-        *front = new_node;
-        return;
-    }
-
-    //else traverse until last node
-    else {
-        while (last->next != NULL)
-            last = last->next;
-    }
-
-    //change the next of last node
-    last->next = new_node;
-}
-
-void display(struct Data *node) {
-    //printf("Ticks: %d\n", ticks);
-    //printf("Process Count: %d\n", process_count);
-    while (node != NULL) {
-        printf("Node Data: %d\n", node->i);
-        node = node->next;
-    }
-    printf("\n\n");
-}
-
-void destroy(struct Data *node) {
-    if (node != NULL) {
-        while (node->next != NULL) {
-            free(node);
-            node = node->next;
+            fscanf(fp, "%d", &y);
+            t += t;
+            printf("Process %d took %d\n", current_process, t);
+            //TODO: calculate SJF
+            t++;
         }
     }
+
+    printf("Turnaround time: TBD\n"); //TODO: calculate turnaround time
+    printf("Waiting time: TBD\n"); //TODO: calculate wait time
+}
+
+//Shortest Job First Live algorithm
+void sjf_live() {
+    printf("==Shortest-Job-First Live==\n");
+    printf("Estimation error: %d\n", error_est);
 }
 
 
@@ -96,7 +81,7 @@ void destroy(struct Data *node) {
 int main(int argc, char* argv[]) {
 
     FILE* fp;
-    char line[sizeof(long int)];
+    //char line[sizeof(long int)];
     char *input_file = argv[optind];
     double x;
     char *ptr;
@@ -110,52 +95,18 @@ int main(int argc, char* argv[]) {
         return EXIT_FAILURE;
     }
 
-    printf("==Shortest-Job-First==\n");
 
-    // reads each line and adds to the
-    int i = 0, y = 0;
-    /**
-    while (fgets(line, sizeof(line), fp)) {
-        x = strtol(line, &ptr, 10);
-        //f = strtod(line, &ptr);
-
-        addProcess(&head, x);
-        i++;
-    }
-     */
 
     fscanf(fp, "%d", &ticks);
-    printf("ticks: %d\n", ticks);
+    printf("total ticks: %d\n", ticks);
     fscanf(fp, "%d", &process_count);
-    printf("process count: %d\n", process_count);
-    fscanf(fp, "%d", &current_process);
-    printf("current process: %d\n", current_process);
-    fscanf(fp, "%d", &t);
-    printf("t value: %d\n", t);
-    fscanf(fp, "%f", &tau);
-    printf("tau value: %f\n", tau);
-    while (i < ticks) {
-        fscanf(fp, "%d", &y);
-        printf("tick: %d value: %d\n", i, y);
-        i++;
-    }
+    printf("total process count: %d\n", process_count);
 
-    while (current_process < process_count) {
+    //run SJF algorithm
+    sjf(fp, ticks, process_count);
 
-        fscanf(fp, "%d", &current_process);
-        printf("current process: %d\n", current_process);
-        fscanf(fp, "%d", &t);
-        printf("t value: %d\n", t);
-        fscanf(fp, "%f", &tau);
-        printf("tau value: %f\n", tau);
-        i = 0;
-        while (i < ticks) {
-            fscanf(fp, "%d", &y);
-            printf("tick: %d value: %d\n", i, y);
-            i++;
-        }
-    }
-
+    //TODO: create sjf live algorithm
+    sjf_live();
 
     fclose(fp);
     return EXIT_SUCCESS;
