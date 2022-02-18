@@ -18,89 +18,97 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 //MACROS: CONSTANTS
-#define LINE_LEN 72
 
 
 ////////////////////////////////////////////////////////////////////////////////
 //DATA STRUCTURES
-struct Node {
-    int data;
-    struct Node *next;
+
+struct Data {
+    int i;
+    struct Data *next;
 };
 
 
 ////////////////////////////////////////////////////////////////////////////////
 //GLOBAL VARIABLES
-struct Node* head = NULL;
-
+int ticks = 0, process_count = 0, current_process = 0, t = 0;
+int tot_turn_time = 0, turn_time = 0, tot_wait_time = 0, wait_time = 0, error_est = 0;
+float tau = 0;
 
 
 ////////////////////////////////////////////////////////////////////////////////
 //FORWARD DECLARATIONS
 
-void addLast(struct Node** head_ref, int new_data) {
-    /* 1. allocate node */
-    struct Node* new_node = (struct Node*) malloc(sizeof(struct Node));
 
-    struct Node *last = *head_ref;  /* used in step 5*/
+////////////////////////////////////////////////////////////////////////////////
+//FUNCTIONS
 
-    /* 2. put in the data  */
-    new_node->data = new_data;
+//Shortest Job First algorithm
+void sjf(FILE *fp, int ticks, int process_count) {
+    int i = 0, y = 0, t = 0;
+    printf("==Shortest-Job-First==\n");
+    while (current_process < (process_count - 1)) {
 
-    /* 3. This new node is going to be the last node, so make next
-          of it as NULL*/
-    new_node->next = NULL;
+        fscanf(fp, "%d", &current_process);
+        fscanf(fp, "%d", &t);
+        fscanf(fp, "%f", &tau);
+        printf("Simulating %dth tick of processes @ time %d:\n", i, t);
 
-    /* 4. If the Linked List is empty, then make the new node as head */
-    if (*head_ref == NULL) {
-        *head_ref = new_node;
-        return;
+        while (t < ticks) {
+
+            fscanf(fp, "%d", &y);
+            t += t;
+            printf("Process %d took %d\n", current_process, t);
+            //TODO: calculate SJF
+            t++;
+        }
     }
 
-    /* 5. Else traverse till the last node */
-    while (last->next != NULL)
-        last = last->next;
-
-    /* 6. Change the next of last node */
-    last->next = new_node;
+    printf("Turnaround time: TBD\n"); //TODO: calculate turnaround time
+    printf("Waiting time: TBD\n"); //TODO: calculate wait time
 }
 
-void *display(struct Node *node) {
-    while (node != NULL) {
-        printf(" %d ", node->data);
-        node = node->next;
-    }
+//Shortest Job First Live algorithm
+void sjf_live() {
+    printf("==Shortest-Job-First Live==\n");
+    printf("Estimation error: %d\n", error_est);
 }
+
+
+////////////////////////////////////////////////////////////////////////////////
+//MAIN METHOD
 
 int main(int argc, char* argv[]) {
 
     FILE* fp;
-    char line[sizeof(long int)];
+    //char line[sizeof(long int)];
     char *input_file = argv[optind];
     double x;
     char *ptr;
+    struct Data* head = NULL;
 
     fp = fopen(input_file, "r");
 
     //check if file loaded properly
     if (fp == NULL) {
         printf("No file to load\n");
-        return 1;
+        return EXIT_FAILURE;
     }
 
-    // reads each line
-    while (fgets(line, sizeof(line), fp)) {
-        x = strtod(line, &ptr);
-        printf("%f\n", x);
-        //addLast(head, x);
-    }
 
-    printf("\n\n\n");
+
+    fscanf(fp, "%d", &ticks);
+    printf("total ticks: %d\n", ticks);
+    fscanf(fp, "%d", &process_count);
+    printf("total process count: %d\n", process_count);
+
+    //run SJF algorithm
+    sjf(fp, ticks, process_count);
+
+    //TODO: create sjf live algorithm
+    sjf_live();
 
     fclose(fp);
-    //display(head);
-    //free(head);
-
-    return 0;
+    return EXIT_SUCCESS;
 }
 
