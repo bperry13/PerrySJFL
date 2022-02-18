@@ -18,59 +18,80 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 //MACROS: CONSTANTS
-#define LINE_LEN 72
 
 
 ////////////////////////////////////////////////////////////////////////////////
 //DATA STRUCTURES
-struct Node {
-    int data;
-    struct Node *next;
+
+struct Data {
+    int i;
+    struct Data *next;
 };
 
 
 ////////////////////////////////////////////////////////////////////////////////
 //GLOBAL VARIABLES
-struct Node* head = NULL;
-
+int ticks, process_count, current_process, t;
+float tau;
 
 
 ////////////////////////////////////////////////////////////////////////////////
 //FORWARD DECLARATIONS
 
-void addLast(struct Node** head_ref, int new_data) {
-    /* 1. allocate node */
-    struct Node* new_node = (struct Node*) malloc(sizeof(struct Node));
 
-    struct Node *last = *head_ref;  /* used in step 5*/
+////////////////////////////////////////////////////////////////////////////////
+//FUNCTIONS
 
-    /* 2. put in the data  */
-    new_node->data = new_data;
+void addProcess(struct Data** front, int i) {
 
-    /* 3. This new node is going to be the last node, so make next
-          of it as NULL*/
+    //allocate mem for new node
+    struct Data* new_node = malloc(sizeof(struct Data));
+    struct Data* last = *front;
+
+    //add data to new node
+    new_node->i = i;
+
+    //make next of new node NULL
     new_node->next = NULL;
 
-    /* 4. If the Linked List is empty, then make the new node as head */
-    if (*head_ref == NULL) {
-        *head_ref = new_node;
+    //if Linked List is empty set new node to front
+    if (*front == NULL) {
+        *front = new_node;
         return;
     }
 
-    /* 5. Else traverse till the last node */
-    while (last->next != NULL)
-        last = last->next;
+    //else traverse until last node
+    else {
+        while (last->next != NULL)
+            last = last->next;
+    }
 
-    /* 6. Change the next of last node */
+    //change the next of last node
     last->next = new_node;
 }
 
-void *display(struct Node *node) {
+void display(struct Data *node) {
+    //printf("Ticks: %d\n", ticks);
+    //printf("Process Count: %d\n", process_count);
     while (node != NULL) {
-        printf(" %d ", node->data);
+        printf("Node Data: %d\n", node->i);
         node = node->next;
     }
+    printf("\n\n");
 }
+
+void destroy(struct Data *node) {
+    if (node != NULL) {
+        while (node->next != NULL) {
+            free(node);
+            node = node->next;
+        }
+    }
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+//MAIN METHOD
 
 int main(int argc, char* argv[]) {
 
@@ -79,28 +100,64 @@ int main(int argc, char* argv[]) {
     char *input_file = argv[optind];
     double x;
     char *ptr;
+    struct Data* head = NULL;
 
     fp = fopen(input_file, "r");
 
     //check if file loaded properly
     if (fp == NULL) {
         printf("No file to load\n");
-        return 1;
+        return EXIT_FAILURE;
     }
 
-    // reads each line
+    printf("==Shortest-Job-First==\n");
+
+    // reads each line and adds to the
+    int i = 0, y = 0;
+    /**
     while (fgets(line, sizeof(line), fp)) {
-        x = strtod(line, &ptr);
-        printf("%f\n", x);
-        //addLast(head, x);
+        x = strtol(line, &ptr, 10);
+        //f = strtod(line, &ptr);
+
+        addProcess(&head, x);
+        i++;
+    }
+     */
+
+    fscanf(fp, "%d", &ticks);
+    printf("ticks: %d\n", ticks);
+    fscanf(fp, "%d", &process_count);
+    printf("process count: %d\n", process_count);
+    fscanf(fp, "%d", &current_process);
+    printf("current process: %d\n", current_process);
+    fscanf(fp, "%d", &t);
+    printf("t value: %d\n", t);
+    fscanf(fp, "%f", &tau);
+    printf("tau value: %f\n", tau);
+    while (i < ticks) {
+        fscanf(fp, "%d", &y);
+        printf("tick: %d value: %d\n", i, y);
+        i++;
     }
 
-    printf("\n\n\n");
+    while (current_process < process_count) {
+
+        fscanf(fp, "%d", &current_process);
+        printf("current process: %d\n", current_process);
+        fscanf(fp, "%d", &t);
+        printf("t value: %d\n", t);
+        fscanf(fp, "%f", &tau);
+        printf("tau value: %f\n", tau);
+        i = 0;
+        while (i < ticks) {
+            fscanf(fp, "%d", &y);
+            printf("tick: %d value: %d\n", i, y);
+            i++;
+        }
+    }
+
 
     fclose(fp);
-    //display(head);
-    //free(head);
-
-    return 0;
+    return EXIT_SUCCESS;
 }
 
