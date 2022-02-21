@@ -3,10 +3,10 @@
  * algorithm(s) to pick which processes should be scheduled in what
  * order
  *
- * Completion time: 5 hours
+ * Completion time: 15 hours
  *
  * @author: Brett Perry
- * @version: 2.14.22
+ * @version: 2.21.22
  */
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -37,7 +37,14 @@ struct Process {
 
 ////////////////////////////////////////////////////////////////////////////////
 //FUNCTIONS
-
+/**
+ * creates the data structure for the processes
+ *
+ * @param fp
+ * @param p
+ * @param tot_procs
+ * @param tot_ticks
+ */
 void create_procs(FILE *fp, struct Process *p, int tot_procs, int tot_ticks) {
     for (int i = 0; i < tot_procs; i++) {
         fscanf(fp, "%d", &p[i].pid);
@@ -54,32 +61,67 @@ void create_procs(FILE *fp, struct Process *p, int tot_procs, int tot_ticks) {
     }
 }
 
+/**
+ * swap function for bubble_sort
+ *
+ * @param xp
+ * @param yp
+ */
 void swap(int *xp, int *yp) {
     int temp = *xp;
     *xp = *yp;
     *yp = temp;
 }
 
+/**
+ * bubble sort for sjf and sjfl algos
+ *
+ * @param temp_arr
+ * @param tot_procs
+ */
 void bubble_sort(int temp_arr[], int tot_procs) {
     int i, j;
-    for (i = 0; i < tot_procs - 1; i++)
-        for (j = 0; j < tot_procs - i - 1; j++)
+
+    for (i = 0; i < tot_procs - 1; i++) {
+        for (j = 0; j < tot_procs - i - 1; j++) {
             if (temp_arr[j] > temp_arr[j+1])
                 swap(&temp_arr[j], &temp_arr[j+1]);
+        }
+    }
 }
 
+/**
+ * print sjf algo
+ *
+ * @param temp_arr
+ * @param tot_procs
+ */
 void print_sjf(int *temp_arr, int tot_procs) {
     for (int i = 0; i < tot_procs; i++) {
         printf("Process %d took %d\n", i, temp_arr[i]);
     }
 }
 
-void print_sjfl(int *temp_arr, int est_time, int tot_procs) {
+/**
+ * print sjf live algo
+ *
+ * @param temp_arr
+ * @param est_error
+ * @param tot_procs
+ */
+void print_sjfl(int *temp_arr, int *est_error, int tot_procs) {
     for (int i = 0; i < tot_procs; i++) {
-        printf("Process %d was estimated for %d and took %d\n", i, est_time, temp_arr[i]);
+        printf("Process %d was estimated for %d and took %d\n", i, est_error[i], temp_arr[i]);
     }
 }
 
+/**
+ * calculate wait time
+ *
+ * @param temp_arr
+ * @param tot_procs
+ * @return
+ */
 int calc_wait(int *temp_arr, int tot_procs) {
     int wait_time = 0;
     for (int i = 0; i < (tot_procs - 1); i++) {
@@ -88,6 +130,13 @@ int calc_wait(int *temp_arr, int tot_procs) {
     return wait_time;
 }
 
+/**
+ * calculate turn around time
+ *
+ * @param temp_arr
+ * @param tot_procs
+ * @return
+ */
 int calc_ta(int *temp_arr, int tot_procs) {
     int total = 0;
     int wait_time = 0;
@@ -103,9 +152,13 @@ int calc_ta(int *temp_arr, int tot_procs) {
     return total;
 }
 
-
-
-
+/**
+ * shortest job first algo
+ *
+ * @param p
+ * @param tot_ticks
+ * @param tot_procs
+ */
 void sjf(struct Process *p, int tot_ticks, int tot_procs) {
     int time = 0, ta_time = 0, tot_wait = 0;
     int *temp_arr = malloc(sizeof(int) * tot_procs);
@@ -124,14 +177,20 @@ void sjf(struct Process *p, int tot_ticks, int tot_procs) {
     }
 
     printf("Turnaround time: %d\n", ta_time);
-
     printf("Waiting time: %d\n\n", tot_wait);
-
     free(temp_arr);
 }
 
+/**
+ * shortest job first live algo
+ *
+ * @param p
+ * @param tot_ticks
+ * @param tot_procs
+ */
 void sjf_live(struct Process *p, int tot_ticks, int tot_procs) {
-    int time = 0, ta_time = 0, tot_wait = 0, est_time = 0, est_error = 0;
+    int time = 0, ta_time = 0, tot_wait = 0, curr_error = 0, tot_error = 0;
+    int *est_error = malloc(sizeof(int) * tot_procs);
     int *temp_arr = malloc(sizeof(int) * tot_procs);
 
     printf("==Shortest-Job-First Live==\n");
@@ -140,15 +199,20 @@ void sjf_live(struct Process *p, int tot_ticks, int tot_procs) {
         for (int j = 0; j < tot_procs; j++) {
             temp_arr[j] = p[j].t[i];
             time += p[j].t[i];
+            est_error[j] = (p[j].alpha * p[j].t[i]) + ((1 - p[j].alpha) * p[j].tau);
+            tot_error += est_error[j];
         }
         bubble_sort(temp_arr, tot_procs);
-        print_sjfl(temp_arr, est_time, tot_procs);
+        print_sjfl(temp_arr, est_error, tot_procs);
         tot_wait += calc_wait(temp_arr, tot_procs);
         ta_time += calc_ta(temp_arr, tot_procs);
     }
     printf("Turnaround time: %d\n", ta_time);
     printf("Waiting time: %d\n", tot_wait);
-    printf("Estimation error: %d\n", est_error);
+    printf("Estimation error: %d\n", tot_error);
+
+    free(est_error);
+    free(temp_arr);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
